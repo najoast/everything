@@ -1,5 +1,6 @@
-> xlua-framework 设计文档
-> [原文](https://github.com/passiony/xlua-framework-unity2018/blob/master/XLua%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3.docx) 是写在 docx 里的，不方便阅读，转为 markdown 格式发布于此。
+> 文章：xlua-framework 设计文档
+> 作者：SChivas
+> [原文](https://github.com/passiony/xlua-framework-unity2018/blob/master/XLua%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3.docx) 是写在 docx 里的，不方便阅读，转为 markdown 格式发布于此，即可提高可读性，也可做为一个备份。
 
 # 一、总体设计
 ## 1.1 概述
@@ -14,6 +15,7 @@
 
 ## 1.2 工程目录
 截图：
+
 ![img](1.png)
 
 说明：
@@ -26,6 +28,7 @@
 - Xlua-lib-build：xlua库构建工程（另设Git项目：https://github.com/smilehao/xlua-lib-build。）
 
 Assets目录截图：
+
 ![img](2.png)
 
 Assets目录说明：
@@ -40,6 +43,7 @@ Assets目录说明：
 - StreamingAssets：AB打包资源
 
 Lua脚本目录截图：
+
 ![img](3.png)
 
 
@@ -60,6 +64,7 @@ Lua脚本目录说明：
 - GameMain：游戏逻辑入口
 
 Scripts目录截图：
+
 ![img](4.png)
 
 Scripts目录说明：
@@ -709,26 +714,37 @@ WebRequester展示当前字体AB包的AB创建器序号，也就是目前展开�
 ## 6.6 热更新流程
 整个热更新流程比较常规，而且目前全部使用了协程方式，读起来应该很顺畅、直白。这里着重说下Unity编辑器模拟模式下的热更、真机热更以及新的资源管理器在启动游戏时做的一些预处理。
 
-- 本地服务器地址设置
+### 6.6.1 本地服务器地址设置
 模拟模式下使用，本地服务器地址配置是为了两个目的：
-    A） 发包时可以指定其它机器作为内网资源热更服务器。
-    B） Mac系统发现读取本地网卡存在Bug，可以通过配置IP指向自身来绕过该Bug（所以在目前的Mac系统中，需要选择任意机器作为服务器，并且输入局域网IP地址---当然也可以输入本机的）。
-Unity菜单项Tools/Package：
+1. 发包时可以指定其它机器作为内网资源热更服务器。
+2. Mac系统发现读取本地网卡存在Bug，可以通过配置IP指向自身来绕过该Bug（所以在目前的Mac系统中，需要选择任意机器作为服务器，并且输入局域网IP地址---当然也可以输入本机的）。
+
+Unity菜单项 `Tools/Package`：
 
 ![img](26.png)
 
-一般情况下，选择CurrentMachine即可，当要手动配置固定的IP地址时，可以选择AnyMachine选项，输入内网IP地址即可，任意机器都行（包括当前机器）。
-- 模拟模式下热更
-Unity菜单AsseetBundles/SwitchModel选中Simulate Model来开启模拟模式，模拟模式下载电脑上也会模拟AB加载，所有资源都是读的AB，所以需要自行保证AB资源是最新的（为当前平台和渠道打一次包就好）。
-模拟模式下本地服务器在切换模式时会自动启动，本地服务器在Editor/AssetBundle/LocalServer目录，这个服务器会自动从当前平台、当前渠道的AB输出目录下读取AB资源（工程目录下的AssetBundles目录中），Unity编辑器在热更时从本地服务器下载资源（也就是AB输出目录下载资源）到电脑的沙盒目录（persistentDataPath---从Unity菜单AssetBundles/Open PersistentData可以打开）。
+一般情况下，选择 CurrentMachine 即可，当要手动配置固定的 IP 地址时，可以选择 AnyMachine 选项，输入内网 IP 地址即可，任意机器都行（包括当前机器）。
+
+### 6.6.2 模拟模式下热更
+
+Unity菜单 `AsseetBundles/SwitchModel` 选中 `Simulate Model` 来开启模拟模式，模拟模式下载电脑上也会模拟AB加载，所有资源都是读的AB，所以需要自行保证AB资源是最新的（为当前平台和渠道打一次包就好）。
+
+模拟模式下本地服务器在切换模式时会自动启动，本地服务器在 `Editor/AssetBundle/LocalServer`目录，这个服务器会自动从当前平台、当前渠道的AB输出目录下读取AB资源（工程目录下的AssetBundles目录中），Unity编辑器在热更时从本地服务器下载资源（也就是AB输出目录下载资源）到电脑的沙盒目录（persistentDataPath---从Unity菜单 `AssetBundles/Open PersistentData` 可以打开）。
+
 和真机上的更新类似，Editor下的模拟更新会先检测StreamingAssets目录（Unity中），比对并下载资源到沙盒目录。需要注意的是，Editor下是没有大版本更新的，所以如果进行了大版本更新，需要拷贝最新输出的AB包资源到StreamingAssets目录（Unity菜单AssetBundles/Copy To StreamingAssets），这个步骤在出包时会自动进行。
-- 真机下热更
-真机下的热更分为内网测试版更新和外网发布版更新，内网更新用于开发阶段的测试，目前的做法同样是使用的Unity中的本地服务器，在电脑上出包时，会将电脑的局域网IP地址写入StreamingAssets/AssetBundles/AssetBundleServerUrl.bytes。
+
+### 6.6.3 真机下热更
+
+真机下的热更分为内网测试版更新和外网发布版更新，内网更新用于开发阶段的测试，目前的做法同样是使用的Unity中的本地服务器，在电脑上出包时，会将电脑的局域网IP地址写入 `StreamingAssets/AssetBundles/AssetBundleServerUrl.bytes`。
+
 将安装包安装到手机上以后，真机客户端判断该安装包是Test渠道，则从StreamingAssets目录下取出本地服务器地址执行热更。
+
 这种方式非常适合开发者自己测试，因为完整的热更流程都可以跑，而且不依赖公司部署的服务器。如果有必要，也可以统一在公司部署内网服务器，给策划和测试发包，此后，所有更新都可以构建AB上传后就生效，不需要重新出包。
-    A） 内外真机热更
+
+#### 1) 内外真机热更
 内外的真机热更只需要配置上述本地服务器地址即可，IP会自动写入安装包，手机需要使用wifi连接到PC机的同一个局域网段，即可执行更新。
-    B） 外网真机热更
+
+#### 2) 外网真机热更
 外网真机热更需要部署外网服务器，随便部署一个Apache服务器即可，相关教程自行谷歌。
 外网更新需要配置一个启动地址，这个启动地址一旦配置，在整个项目运营过程中将不再改变：
 
@@ -738,9 +754,10 @@ Unity菜单AsseetBundles/SwitchModel选中Simulate Model来开启模拟模式，
 
 ![img](28.png)
 
-其中APP_DOWNLOAD_URL为大版本更新时，大版本安装文件的下载地址，而SERVER_RESOURCE_URL为有小版本资源更新时，资源更新的下载地址。其它信息按照项目需要自行配置即可。
-    C） 大版本更新
-大版本更新即游戏新的安装包下载，Package窗口的app_version设置当前的大版本版本号，这个版本号在每次出包时会自动递增（所以一般情况下不需要手动设置），只要手机上安装的版本小于服务器的app版本号设置，就会执行大版本更新。大版本更新在Andorid和iOS上走不同的流程，如：
+其中 `APP_DOWNLOAD_URL` 为大版本更新时，大版本安装文件的下载地址，而 `SERVER_RESOURCE_URL` 为有小版本资源更新时，资源更新的下载地址。其它信息按照项目需要自行配置即可。
+
+#### 3) 大版本更新
+大版本更新即游戏新的安装包下载，Package窗口的`app_version`设置当前的大版本版本号，这个版本号在每次出包时会自动递增（所以一般情况下不需要手动设置），只要手机上安装的版本小于服务器的app版本号设置，就会执行大版本更新。大版本更新在Andorid和iOS上走不同的流程，如：
 
 ![img](29.png)
 
@@ -749,7 +766,7 @@ iOS上的流程不做说明，Andorid平台的下载通过Andorid SDK来实现�
 ![img](30.png)
 ![img](31.png)
 
-安卓原生的Java工程在工程目录xlua-framework/Channel/UnityCallAndroid中，使用Eclipse打开工程，可以看到脚本函数：
+安卓原生的Java工程在工程目录 `xlua-framework/Channel/UnityCallAndroid`中，使用Eclipse打开工程，可以看到脚本函数：
 
 ![img](32.png)
 
@@ -760,8 +777,12 @@ iOS上的流程不做说明，Andorid平台的下载通过Andorid SDK来实现�
 ![img](35.png)
 ![img](36.png)
 
-    D） 资源版本更新
-资源版本更新就是所谓小版本更新，Package窗口中的res_version指定资源版本号，这个版本号在每次构建AB资源时会自动递增（所以一般情况下不需要手动设置，意思就是说如果只是修改了Lua代码，或者修改了AB资源，那么只要在Package窗口点击AB构建项的Execute Build构建AB即可，手机上打开游戏就会执行自动更新），只要手机上安装的版本资源版本号小于了服务器的资源版本号设置，就会执行资源更新。资源更新的具体流程这里不再多做说明，自己参考源代码，流程很清晰。这里贴下效果图：
+#### 4) 资源版本更新
+资源版本更新就是所谓小版本更新，Package窗口中的 `res_version` 指定资源版本号，这个版本号在每次构建AB资源时会自动递增。
+
+所以一般情况下不需要手动设置，意思就是说如果只是修改了Lua代码，或者修改了AB资源，那么只要在Package窗口点击AB构建项的Execute Build构建AB即可，手机上打开游戏就会执行自动更新。
+
+只要手机上安装的版本资源版本号小于了服务器的资源版本号设置，就会执行资源更新。资源更新的具体流程这里不再多做说明，自己参考源代码，流程很清晰。这里贴下效果图：
 
 ![img](37.png)
 
@@ -769,33 +790,47 @@ iOS上的流程不做说明，Andorid平台的下载通过Andorid SDK来实现�
 
 ![img](38.png)
 
-- 资源管理器预处理
-目前AssetBundleManager是CS书写，为了简化，在热更以前AB管理器就已经启动，之后的所有加载都是走的AB管理器，这和游戏中的AB加载并没有区别。而以往的AB热更时，比如热更界面的加载，需要自己去控制加载字体、图集、UI预设，很麻烦，而目前启动管理器加载逻辑上只需要加载预设，其依赖关系全部交给了管理器自动去处理。
-启动脚本是GameLaunch.cs，流程都很清晰，这里不再做过多说明，主要讲下和AB包相关的预处理工作。也就是AssetBundleManager中的Initialize函数：
-    A） 加载Manifest，这个里面包含了所有AB和依赖关系
-    B） 加载AssetsPathMapping，这个里面包含了资源路径到AB路径的映射
-    C） 设置常驻AB包
+### 6.6.4 资源管理器预处理
+
+目前 `AssetBundleManager` 是CS书写，为了简化，在热更以前AB管理器就已经启动，之后的所有加载都是走的AB管理器，这和游戏中的AB加载并没有区别。而以往的AB热更时，比如热更界面的加载，需要自己去控制加载字体、图集、UI预设，很麻烦，而目前启动管理器加载逻辑上只需要加载预设，其依赖关系全部交给了管理器自动去处理。
+
+启动脚本是 `GameLaunch.cs`，流程都很清晰，这里不再做过多说明，主要讲下和AB包相关的预处理工作。也就是AssetBundleManager中的Initialize函数：
+1. 加载Manifest，这个里面包含了所有AB和依赖关系
+2. 加载AssetsPathMapping，这个里面包含了资源路径到AB路径的映射
+3. 设置常驻AB包
+
 这些准备工作做完，AB管理器就可以正常工作了。需要注意的是，如果有资源需要热更，那么资源管理器需要重启。以保证管理器中不残留更新前的旧资源。
+
 ## 6.7 资源预加载
-资源预加载发生在场景切换时，比如LuaScripts/Scenes/ LoginScene.lua，在OnCreate函数中添加场景需要预加载的资源：
+资源预加载发生在场景切换时，比如 `LuaScripts/Scenes/ LoginScene.lua`，在`OnCreate`函数中添加场景需要预加载的资源：
+
 ```lua
 self:AddPreloadResource(UIConfig[UIWindowNames.UILogin].PrefabPath, typeof(CS.UnityEngine.GameObject), 1)
 ```
 
-第一个参数是资源相对路径（AssetsPackage下的路径），第二个参数是资源类型，如果是GameObject，则第三个参数指定需要实例化的个数。预加载的GameObject，所有实例化的对象会自动放到缓存池，使用时直接从缓存池取就行了。如果不是GameObject，则不需要实例化，第三个参数无效，也不需要填写。
+- 第一个参数是资源相对路径（AssetsPackage下的路径）
+- 第二个参数是资源类型
+	- 如果是GameObject，则第三个参数指定需要实例化的个数。预加载的GameObject，所有实例化的对象会自动放到缓存池，使用时直接从缓存池取就行了。
+	- 如果不是GameObject，则不需要实例化，第三个参数无效，也不需要填写。
+
 资源预加载的细节说明参考“场景管理模块”。
+
 ## 6.8 资源缓存池
-资源缓存池放在Lua中做的，脚本在LuaScripts/Framework/ Resource/GameObjectPool.lua，所有的预设（需要实例化的GameObject）都从这里加载，不要直接从ResourcesManager.lua去加载。
+资源缓存池放在Lua中做的，脚本在 `LuaScripts/Framework/Resource/GameObjectPool.lua`，所有的预设（需要实例化的GameObject）都从这里加载，不要直接从`ResourcesManager.lua`去加载。
+
 需要注意的有两点：
 1. 所有的加载、预加载操作都是异步的，因为如果从缓存池中获取的物体没有被预加载出来，则缓存池还要等待资源层加载完毕才能返回GameObject。如果不想要异步，那么使用TryGetFromCache接口，但是必须自行保证该资源已经被预加载，否则会返回nil，并不会尝试从资源层加载。
 2. 所有接口提供协程和回调两套接口，想使用哪种看自行偏好，但是回调方式内部也是用协程实现的。
 
 # 七、场景管理模块
+
 ## 7.1 概述
-脚本目录分为两个部分：LuaScripts/Framework/Scene和LuaScripts/Scenes。前者提供了一个场景管理脚本和一个场景基类脚本，而后者是各个具体场景派生出的逻辑功能。
+脚本目录分为两个部分：`LuaScripts/Framework/Scene`和`LuaScripts/Scenes`。前者提供了一个场景管理脚本和一个场景基类脚本，而后者是各个具体场景派生出的逻辑功能。
+
 场景管理系统目前主要是调度和控制场景的异步加载以及进度管理，并展示Loading界面和更新视图进度条。此外清理离开场景资源，并预加载进入场景的资源等。
 
 ## 7.2 工作流程
+
 - 打开Loading界面
 - 清理旧场景
 - 清理所有UI
@@ -806,11 +841,15 @@ self:AddPreloadResource(UIConfig[UIWindowNames.UILogin].PrefabPath, typeof(CS.Un
 - 异步加载目标场景
 - 资源预加载
 - 加载完成，关闭Loading界面
+
 ## 7.3 技术要点
+
 场景管理唯一一个比较难懂的地方是协程，特别是子级协程给父级协程一个加载进度的数据交付。
-- 进度控制
+
+### 7.3.1 进度控制
 场景加载的进度条控制，以及各个步骤需要分配的进度比例完全是由场景管理脚本控制的。
-- 协程等待异步操作的进度交付
+
+### 7.3.2 协程等待异步操作的进度交付
 如代码：
 ```lua
 --异步加载目标场景
@@ -822,9 +861,12 @@ end)
 model.value = cur_progress + 0.15
 ```
 
-第一句和最后一句控制了异步加载目标场景占整个场景加载进度的15%。
-第二句为协程等待异步操作结束，第一个参数是异步操作的句柄，第二个参数是一个回调，这个回调会在等待过程中的每帧中被调用，progress参数指示当前异步操作的操作进度。
-- 协程等待子级协程的进度交付
+- 第一句和最后一句控制了异步加载目标场景占整个场景加载进度的15%
+- 第二句为协程等待异步操作结束
+	- 第一个参数是异步操作的句柄
+	- 第二个参数是一个回调，这个回调会在等待过程中的每帧中被调用，progress参数指示当前异步操作的操作进度。
+
+### 7.3.3 协程等待子级协程的进度交付
 如代码：
 
 ```lua
@@ -837,93 +879,137 @@ coroutine.yieldstart(logic_scene.CoOnPrepare, function(co, progress)
 model.value = cur_progress + 0.65
 ```
 
-同样，第一句和最后一句决定了资源预加载过程占整个场景加载进度的65%。
-第二句是父级协程等待子级协程完成，并根据子级协程交付的进度信息来更新总体进度。第一个参数是子级协程的函数体，第二个参数是一个回调，该回调会在子级协程调用yieldreturn或者yieldcallback时被调用，用于交付子级协程的处理进度
-- 资源预加载进度计算
-资源预加载的过程在BaseScene.lua中完成，首先根据需要预加载的资源个数计算进度切片，比如归一化进度值为1，而需要预加载的资源有10个，那么进度切片就是1/10 = 0.1，然后对GameObject从缓存池预加载，而对于其它资源直接从资源管理器加载，全部使用协程方式，每帧向父级协程上报当前归一化进度信息，计算公式：
-当前归一化进度 = （已加载资源个数 + 正在加载的资源进度） * 进度切片
+- 同样，第一句和最后一句决定了资源预加载过程占整个场景加载进度的65%。
+- 第二句是父级协程等待子级协程完成，并根据子级协程交付的进度信息来更新总体进度。
+	- 第一个参数是子级协程的函数体
+	- 第二个参数是一个回调，该回调会在子级协程调用yieldreturn或者yieldcallback时被调用，用于交付子级协程的处理进度
+
+### 7.3.4 资源预加载进度计算
+资源预加载的过程在 `BaseScene.lua` 中完成。
+
+首先根据需要预加载的资源个数计算进度切片，比如归一化进度值为1，而需要预加载的资源有10个，那么进度切片就是1/10 = 0.1，然后对GameObject从缓存池预加载，而对于其它资源直接从资源管理器加载。
+
+全部使用协程方式，每帧向父级协程上报当前归一化进度信息，计算公式：
+```
+当前归一化进度 = (已加载资源个数 + 正在加载的资源进度) * 进度切片
+```
 
 # 八、网络管理模块
+
 ## 8.1 概述
 网络模块使用protobuf协议+TCP协议，lua侧的protobuf协议模块从tolua移植而来，逻辑包头沿用我以前用过的一个项目中的包头，proto文件全部转为Lua配置表。目前实现了一个简化的TCP连接器，并通过了一条PB协议的测试。
 
 ## 8.2 Protobuf协议
-网络模块使用protobuf协议+TCP协议，lua侧的protobuf协议模块从tolua移植而来，脚本目录在LuaScripts/Framework/Net/ Protobuf。其中大部分脚本都经过调整，不能再简简单单从tolua做升级（主要是去除了module关键字）。
+网络模块使用protobuf协议+TCP协议，lua侧的protobuf协议模块从tolua移植而来，脚本目录在`LuaScripts/Framework/Net/Protobuf`。其中大部分脚本都经过调整，不能再简简单单从tolua做升级（主要是去除了module关键字）。
+
 Pb的序列化、反序列化操作很简单，示例参考单元测试中的ProtobufTest.lua脚本。
-Proto协议文件在目录ProtoToCS /ProtoGen/ proto当中，从Proto协议文件转Lua配置文件使用Unity菜单Tools/LuaConfig，打开菜单后点击proto gen lua即可。生成的lua配置文件在LuaScripts/Net/ Protol目录下。
-此外，还将生成LuaScripts/Net/ Config/MsgIDDefine以及LuaScripts/Net/ Config/MsgIDMap。
-协议的使用参考UILoginCtrl.lua中的OnConnect函数，主要是注意根据上面的两张表生成协议体数据表的方式：
+
+Proto协议文件在目录`ProtoToCS/ProtoGen/proto`当中，从Proto协议文件转Lua配置文件使用Unity菜单`Tools/LuaConfig`，打开菜单后点击`proto gen lua`即可。生成的lua配置文件在`LuaScripts/Net/Protol`目录下。
+
+此外，还将生成`LuaScripts/Net/Config/MsgIDDefine`以及`LuaScripts/Net/ Config/MsgIDMap`。
+协议的使用参考`UILoginCtrl.lua`中的`OnConnect`函数，主要是注意根据上面的两张表生成协议体数据表的方式：
+```lua
 local msd_id = MsgIDDefine.LOGIN_REQ_GET_UID
 local msg = (MsgIDMap[msd_id])()
+```
 然后填写协议数据并发送：
+```lua
 HallConnector:GetInstance():SendMessage(msd_id, msg)
+```
+
 ## 8.3 工作流程
 分为TCP数据包发送和TCP数据包接受两部分：
-- TCP数据包发送
-    A） 逻辑层拼协议体数据并使用TCP连接器发送数据
-    B） 创建网络数据包（SendMsgDefine对象）
-    C） 序列化网络数据包并XOR加密
-    D） 传送字节流到给CS侧HallSocket并发送
+### 8.3.1 TCP数据包发送
+1. 逻辑层拼协议体数据并使用TCP连接器发送数据
+2. 创建网络数据包（SendMsgDefine对象）
+3. 序列化网络数据包并XOR加密
+4. 传送字节流到给CS侧HallSocket并发送
+
 CS侧TCP发送流程不再说明，主要是多线程+信号量来发送接受网络包，需要注意：对于CS侧的网络收发模块来说，只有字节流的概念，其它操作一并在Lua中处理。
-- TCP数据包接收
-    A） CS侧HallSocket接收字节流
-    B） 调用HallConnector.lua中的OnReceivePackage函数，并传递字节流过来
-    C） 反序列化网络数据
+
+### 8.3.2 TCP数据包接收
+1. CS侧HallSocket接收字节流
+2. 调用HallConnector.lua中的OnReceivePackage函数，并传递字节流过来
+3. 反序列化网络数据
+
 后续逻辑执行的流程目前没有做了，这部分已经和网络模块本身关系不太大，后续再做考虑完善。
+
 ## 8.4 其它说明
-- 网络包的序列化/反序列化，以及XOR加密流程在NetUtil.lua当中，其实没有什么需要说的，用自己的加密算法替换就好，lua语法不懂的查文档即可。
+网络包的序列化/反序列化，以及XOR加密流程在`NetUtil.lua`当中，其实没有什么需要说的，用自己的加密算法替换就好，lua语法不懂的查文档即可。
 
 # 九、配置表
+
 ## 9.1 概述
-    目前所有的配置表都转成Lua表，目前有两个部分，一个是xlsx表转lua表，另一个是proto文件转lua表。两类表的转化工具都在Unity菜单Tools/LuaConfig中。
+目前所有的配置表都转成Lua表，目前有两个部分，一个是xlsx表转lua表，另一个是proto文件转lua表。两类表的转化工具都在Unity菜单`Tools/LuaConfig`中。
+
 ## 9.2 xlsx gen lua
-目前测试用的xlsx表目录是ConfigData/trunk。
-Xlsx表转化以后输出到LuaScripts/Config/Data当中。
+目前测试用的xlsx表目录是`ConfigData/trunk`。
+Xlsx表转化以后输出到`LuaScripts/Config/Data`当中。
 配置表的读取也很直白，直接require进配置表并读取其中的内容就好，其它的没什么需要说的。
+
 ## 9.3 proto gen lua
 Proto gen lua大部分内容已经在“Protobuff协议”小节中介绍，这里说下细节。输入是ProtoToCS目录中的proto文件，但是转换工具在ProtoToLua中，这个转换工具是tolua作者写的，但是有点不好使，有些地方已经被我修改（修改的几处重要地方都有注释说明）。
-转换批处理脚本在ProtoToLua/make_proto.bat，tolua作者写的proto-gen-lua在ProtoToLua/ plugin/ protoc-gen-lua，此外还有一个自动生成MsgID配置的脚本在ProtoToLua/ plugin/ msgid-gen-lua。
 
-# 十、XLua工作流
-## 10.1 Lua脚本分类
-Lua脚本大体上可以分为3个部分：LuaScripts/Common（通用工具脚本）、LuaScripts/ XLua（热修复脚本）、其它游戏逻辑脚本。这3部分的脚本存在一定的隔离关系。
+转换批处理脚本在`ProtoToLua/make_proto.bat`，tolua作者写的`proto-gen-lua`在`ProtoToLua/ plugin/protoc-gen-lua`，此外还有一个自动生成MsgID配置的脚本在`ProtoToLua/plugin/ msgid-gen-lua`。
+
+# 十、[xLua](https://github.com/Tencent/xLua)工作流
+
+## 10.1 Lua 脚本分类
+Lua 脚本大体上可以分为3个部分：
+1. `LuaScripts/Common`（通用工具脚本）
+2. `LuaScripts/XLua`（热修复脚本）
+3. 其它游戏逻辑脚本
+
+这3部分的脚本存在一定的隔离关系。
+
 通用工具脚本：入口在其中的Main.lua，这部分脚本不能引用外部的任何脚本，必须首先被启动，另外两个部分有可能依赖于它。类似CS脚本系统中放入Plugin下的脚本。
-热修复脚本：热修复脚本全部放入XLua目录当中，和之前分享的《轻量级XL ua热修复框架》项目中的热修复脚本目录结构一致（文末有项目链接），热修复脚本只能依赖于通用工具脚本，不能访问其它游戏逻辑脚本。因为游戏启动时热修复就会被启动，但是这个时候还没启动Lua游戏逻辑脚本。入口在其中的HotfixMain.lua
+
+热修复脚本：热修复脚本全部放入XLua目录当中，和之前分享的[轻量级XLua热修复框架](../xlua-hotfix/README.md)项目中的热修复脚本目录结构一致，热修复脚本只能依赖于通用工具脚本，不能访问其它游戏逻辑脚本。因为游戏启动时热修复就会被启动，但是这个时候还没启动Lua游戏逻辑脚本。入口在其中的HotfixMain.lua
+
 游戏逻辑脚本：除上面两部分外的脚本全部归属于这一类，同样依赖于通用工具脚本，最好不要访问热修复脚本，感觉也没这个必要。游戏逻辑脚本的入口在GameMain.lua
+
 XLua大体的启动流程在1.3小节已经做过说明，这里具体化一下。
+
 - 游戏打开以后启动资源管理器，为Lua脚本的加载提供支持
 - 设置Lua AB包常驻，并且异步加载Lua AB包到内存，这个步骤当中，其实在资源管理底层就会把所有的Assets脚本加载进来，也就是所有的Lua脚本都会缓存到内存---注意，这个时候并没有加载到Lua虚拟机。
 - Lua脚本中一旦遇到require命令，会查找package.loaded表，如果表中没有被记录，则会尝试从加载器加载脚本。加载器会回调到XLuaManager中的CustomLoader函数，该函数对脚本路径执行处理，并尝试从资源管理器加载Lua脚本（此时由于Lua脚本已经在内存，不会有IO操作，速度应该是很快的）
 - GameLauch中加载Lua AB包以后启动Lua虚拟机，随后调用的OnInit函数中，XLuaManager会优先将通用工具类脚本加载到虚拟机；随后执行热修复StartHotfix，这个时候XLuaManger会调用HotfixMain.lua中的Start函数，热修复脚本开始生效，提供尽快的热修复支持。
 - 接下来开始热更资源，假设有Lua脚本被热更下来，那么目前正在跑的虚拟机中的脚本就可能是过时的。所以热更完毕以后，将目前的Lua虚拟器停止掉，另外启动了一个虚拟机，同样是先启动通用工具类脚本，随后启动热修复脚本
 - 随后对资源进行必要的准备工作，并调用StartGame，XLuaManager会调用GameMain.lua中的Start函数，开始跑Lua游戏逻辑。
+
 ## 10.2 XLua热修复
-XLua热修复的整体流程沿用了之前的热修复框架：http://www.cnblogs.com/SChivas/p/7893048.html。写过的脚本以及支持脚本都有沿用过来。唯一的区别是现在有切换Lua虚拟机，所以所有的XLua热修复脚本必须支持热拔插，否则XLua虚拟机停不掉。
-为了支持XLua热修复脚本支持热拔插，现在要求对于每个热修复脚本，必须提供Register和Unregister两个接口，分别用于启动热修复和停止热修复。
-具体的示例参考LuaScripts/Hotfix/HotfixTest.Lua。
-其它方面不再多做说明。
+XLua热修复的整体流程沿用了[之前的热修复框架](../xlua-hotfix/README.md)。写过的脚本以及支持脚本都有沿用过来。唯一的区别是现在有切换Lua虚拟机，所以所有的XLua热修复脚本必须支持热拔插，否则XLua虚拟机停不掉。
+
+为了支持XLua热修复脚本支持热拔插，现在要求对于每个热修复脚本，必须提供Register和Unregister两个接口，分别用于启动热修复和停止热修复。具体的示例参考LuaScripts/Hotfix/HotfixTest.Lua。其它方面不再多做说明。
+
 ## 10.3 XLua动态库构建
-    XLua的动态库的构建项目在XLua Git上的Build目录中，这个工程里的东西完全不需要改动，如果遇到构建失败，那唯一可能是你搭的环境和XLua作者使用的有差别。这里对XLua动态库的构建做下说明，因为下面要讲到的第三方库是以这里为基础的，而且以后有可能需要扩展第三方库。
-- 构建项目目录结构
+XLua的动态库的构建项目在XLua Git上的Build目录中，这个工程里的东西完全不需要改动，如果遇到构建失败，那唯一可能是你搭的环境和XLua作者使用的有差别。这里对XLua动态库的构建做下说明，因为下面要讲到的第三方库是以这里为基础的，而且以后有可能需要扩展第三方库。
+
+### 10.3.1 构建项目目录结构
 
 ![img](39.png)
 
-    A） cmake目录：包含CMake在安卓、IOS平台进行构建时需要用到的两个文件：andorid.toolchain.cmake、iOS.cmake
-    B） CMakeLists.txt文件：cmake根据CMakeLists生成各个平台编译的中间文件以及makefile文件，这个是集成第三方库需要修改的一个文件。
-    C） make_打头的各个.bat、.sh文件：各个平台下的一键构建脚本，一般不需要修改。
-    D） perflib.c：供Lua侧性能调试用的库
-    E） xlua.c：XLua核心库
-    F） 其它各个目录和脚本：lua虚拟机或者第三方库
-- 各平台动态库构建
+1. cmake目录：包含CMake在安卓、IOS平台进行构建时需要用到的两个文件：andorid.toolchain.cmake、iOS.cmake
+2. CMakeLists.txt文件：cmake根据CMakeLists生成各个平台编译的中间文件以及makefile文件，这个是集成第三方库需要修改的一个文件。
+3. make_打头的各个.bat、.sh文件：各个平台下的一键构建脚本，一般不需要修改。
+4. perflib.c：供Lua侧性能调试用的库
+5. xlua.c：XLua核心库
+6. 其它各个目录和脚本：lua虚拟机或者第三方库
+
+### 10.3.2 各平台动态库构建
 选择各个平台对应的构建脚本执行，目前使用的是lua53，所以所有以luajit结尾的构建脚本全部忽略。具体指定是：
-    A） Windows系统（提供在Windows下开发的Unity编辑器支持）：make_win32_lua53.bat、make_win64_lua53.bat分别对应32位、64位系统，要求在windows下安装VS2015和CMake
-    B） Mac系统（提供在Mac下开发的Unity编辑器支持）：make_osx_lua53.sh，要求在Mac下安装XCode，当时我编译的时候好像XCode版本太高是不支持的，我使用的是XCode8.1（不知道XLua作者提供了对XCode9的支持没有，试一下就知道了），另外也要安装CMake。
-    C） Linux系统：不管，现在公司也没有用Linux系统做开发的。
-    D） Android平台（提供对Android真机的支持）：make_android_lua53.bat（Windows平台下构建）、make_android_lua53.sh（Linux平台下构建），当时我实在Linux平台下构建的（因为当时XLua作者没有提供在windows平台下构建的支持），所以对前者并没有测试过，感觉也需要安装CMake、VS2015和安卓ndk？skd？jdk？不确定。在Linux下构建需要安装CMake和NDK，版本为：andorid-ndk-r10e，环境变量配置自行谷歌。
-    E） iOS平台（提供对iphone真机的支持）：make_ios_lua53.sh，这个脚本必须在Mac机器上跑，需要的运行环境和B）中提到的一样。
+
+1. Windows系统（提供在Windows下开发的Unity编辑器支持）：make_win32_lua53.bat、make_win64_lua53.bat分别对应32位、64位系统，要求在windows下安装VS2015和CMake
+2. Mac系统（提供在Mac下开发的Unity编辑器支持）：make_osx_lua53.sh，要求在Mac下安装XCode，当时我编译的时候好像XCode版本太高是不支持的，我使用的是XCode8.1（不知道XLua作者提供了对XCode9的支持没有，试一下就知道了），另外也要安装CMake。
+3. Linux系统：不管，现在公司也没有用Linux系统做开发的。
+4. Android平台（提供对Android真机的支持）：make_android_lua53.bat（Windows平台下构建）、make_android_lua53.sh（Linux平台下构建），当时我实在Linux平台下构建的（因为当时XLua作者没有提供在windows平台下构建的支持），所以对前者并没有测试过，感觉也需要安装CMake、VS2015和安卓ndk？skd？jdk？不确定。在Linux下构建需要安装CMake和NDK，版本为：andorid-ndk-r10e，环境变量配置自行谷歌。
+5. iOS平台（提供对iphone真机的支持）：make_ios_lua53.sh，这个脚本必须在Mac机器上跑，需要的运行环境和B）中提到的一样。
+
 各个平台下CMake的安装，以及各个平台的环境变量配置谷歌就好，很多教程。成功构建以后会将动态库生成到当前目录的Plugins目录中，拷贝动态库到Unity的Plugins目录中即可。
+
 此外注意，ios下的动态库只有一个，但是需要同时支持armv7和ram64架构，查看编译出来的.a动态库是否支持者两种架构可以使用命令：lipo –info libxlua.a
-- 动态库配置
+
+### 10.3.3 动态库配置
 
 ![img](40.png)
 
@@ -932,22 +1018,25 @@ XLua热修复的整体流程沿用了之前的热修复框架：http://www.cnblo
 ## 10.4 XLua第三方库集成
 Xlua官网有第三方库集成的一个教程，如果以后真需要集成第三方库，最好先看看那个教程。这里以tolua的protoc-gen-lua需要用到的一个库集成到XLua为例做下说明。
 Protoc-gen-lua大部分逻辑用lua实现，需要用的唯一一个C文件是pb.c，在xlua中要能使用就必须把它集成到xlua动态库中去。
-- 修改CMakeLists.txt文件
+
+### 10.4.1 修改CMakeLists.txt文件
 
 ![img](41.png)
 
-- 修改pb.c
+### 10.4.2 修改pb.c
 
 ![img](42.png)
 
 对于库文件需要做的修改需要根据实际情况来做。
-- 在BuildInInit.cs文件中添加：
+
+### 10.4.3 在BuildInInit.cs文件中添加：
 ![img](43.png)
-- 在XLua虚拟机启动时初始化库的加载
+
+### 10.4.5 在XLua虚拟机启动时初始化库的加载
 ![img](44.png)
 
 ## 10.5 XLua升级 
-XLua的升级包括两个部分，一个是源代码，另外一个是xlua库要重新构建。
+xLua的升级包括两个部分，一个是源代码，另外一个是xlua库要重新构建。
 - 到XLua Git上用Clone or download下载最新版本。
 - 替换Tools目录
 - 将XLua/Assets/XLua/Src/Editor下的内存拷贝到项目工程Editor/XLua目录下（先删除旧文件---其中XLuaMenu.cs是自己写的脚本，不要删了；GenConfig.cs不动）
@@ -959,28 +1048,24 @@ XLua的升级包括两个部分，一个是源代码，另外一个是xlua库要
 # 十一、其它说明
 
 ## 11.1 资料和链接
-- Lua5.3参考手册：http://cloudwu.github.io/lua53doc/contents.html。
-- Unity官方最佳实践系列：
-https://unity3d.com/cn/learn/tutorials/s/best-practices。
-- Unity Mono脚本函数调度顺序：
-https://docs.unity3d.com/Manual/ExecutionOrder.html。
-- AB压缩格式：
-https://docs.unity3d.com/530/Documentation/Manual/AssetBundleCompression.html。
-- Lua教程：Programming_In_Lua.pdf（工作目录下）
-- Lua性能优化：lua性能优化.pdf（工作目录下）
-- CMake官网：https://cmake.org/。
-- 代码规范：项目工程Assets目录下的《代码规范.txt》
-- Kcp-build：http://www.cnblogs.com/SChivas/p/7854100.html。
-- Xlua热修复框架：http://www.cnblogs.com/SChivas/p/7893048.html。
-- 本项目：https://github.com/smilehao/xlua-framework。
+- [Lua5.3参考手册](http://cloudwu.github.io/lua53doc/contents.html)
+- [Unity官方最佳实践系列](https://unity3d.com/cn/learn/tutorials/s/best-practices)
+- [Unity Mono脚本函数调度顺序](https://docs.unity3d.com/Manual/ExecutionOrder.html)
+- [AB压缩格式](https://docs.unity3d.com/530/Documentation/Manual/AssetBundleCompression.html)
+- [Unity官方文档](https://docs.unity3d.com/Manual/index.html)
+- [Unity官方API文档](https://docs.unity3d.com/ScriptReference/index.html)
+- [Unity官方API文档](https://docs.unity3d.com/ScriptReference/index.html)
+- [代码规范](code-style.md)
+- [Kcp-build](https://github.com/skywind3000/kcp/tree/master/build)
+- [Xlua热修复框架](https://github.com/Tencent/xLua/tree/master/hotfix)
+- [本项目](https://github.com/smilehao/xlua-framework)
 
 ## 11.2 Git地址
-- XLua：https://github.com/Tencent/xlua。
-- ToLua：https://github.com/topameng/tolua。
-- Protoc-gen-lua：https://github.com/topameng/protoc-gen-lua。
-- 官方AB浏览器（不太好用，可以参考它的源代码自己写一个）：
-https://github.com/Unity-Technologies/AssetBundles-Browser。
-- XLua第三方库集成：https://github.com/smilehao/xlua-lib-build。
+- [xLua](https://github.com/Tencent/xlua)
+- [ToLua](https://github.com/topameng/tolua)
+- [Protoc-gen-lua](https://github.com/topameng/protoc-gen-lua)
+- [官方AB浏览器](https://github.com/Unity-Technologies/AssetBundles-Browser) （不太好用，可以参考它的源代码自己写一个）
+- [XLua第三方库集成](https://github.com/smilehao/xlua-lib-build)
 
 ## 11.3 其它
 - 作者：Chivas
